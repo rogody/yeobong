@@ -14,17 +14,17 @@ class ChatUI:
     def __init__(self, backend):
         self.backend = backend  # backend는 generate_reply(user_id, text) 메서드를 가지고 있다고 가정
 
-        ctk.set_appearance_mode("dark")
+        ctk.set_appearance_mode("Dark")
         ctk.set_default_color_theme("blue")
 
         self.root = ctk.CTk()
-        self.root.title("AI Memory Bot (Qwen 4B Demo)")
+        self.root.title("AI chat bot")
         self.root.geometry("800x600")
-
+        
         # 상단 채팅 출력 영역
         self.chat_box = ctk.CTkTextbox(self.root, wrap="word", state="disabled")
         self.chat_box.pack(fill="both", expand=True, padx=10, pady=10)
-
+        
         # 하단 입력 + 버튼 프레임
         bottom_frame = ctk.CTkFrame(self.root)
         bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
@@ -37,7 +37,7 @@ class ChatUI:
         self.send_button.pack(side="right")
 
         # 초기 안내 메시지
-        self._append_message("system", "Qwen 4B 기반 데모 챗봇입니다. 아무 말이나 해보세요!")
+        self._append_message("system", "YEOBONG")
 
     def _append_message(self, speaker: str, text: str):
         """채팅창에 메시지를 추가하는 헬퍼."""

@@ -1,5 +1,6 @@
 from chatbot.infra.llm_model import LLModel
 from chatbot.ui.chatui import ChatUI, SimpleLLMBackend
+import customtkinter as ctk
 
 
 def main():
@@ -13,6 +14,6 @@ def main():
     ui = ChatUI(backend)
     ui.run()
 
-
 if __name__ == "__main__":
     main()
+  
