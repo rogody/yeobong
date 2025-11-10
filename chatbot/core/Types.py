@@ -1,5 +1,5 @@
 '''
-도메인에서 사용하는 자료형들을 정의
+사용하는 자료형들을 정의
 example
 class Pad
     pleasure: float
@@ -9,3 +9,7 @@ class Pad
 class Persona, class Episodicmemory 등등
     
 '''
+from dataclasses import dataclass
+@dataclass
+class ChatResult:
+    reply: str

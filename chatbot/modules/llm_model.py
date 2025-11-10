@@ -1,7 +1,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 class LLModel:
-    def __init__(self, model_name: str = "Qwen/Qwen3-4B-Instruct-2507"):
+    def __init__(self, model_name: str):
         # load the tokenizer and the model
         print("Loading model:", model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
