@@ -11,3 +11,7 @@ class ChatController:
         #오류 처리 등
         result = self.service.run_turn(text)
         return result.reply
+
+    def shutdown(self) -> None:
+        """Called when UI exits so the service can clean resources."""
+        self.service.close_session()

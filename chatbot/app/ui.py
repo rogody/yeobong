@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinter import END
+import logging
 
 from chatbot.modules.llm_model import LLModel
 from .controller import ChatController
@@ -17,6 +18,7 @@ class ChatUI:
         self.root = ctk.CTk()
         self.root.title("AI chat bot")
         self.root.geometry("800x600")
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
         # chat area
         self.chat_area = ctk.CTkTextbox(self.root, wrap="word")
@@ -89,6 +91,15 @@ class ChatUI:
         self.send_button.configure(state="normal")
         self.input_entry.configure(state="normal")
         self.input_entry.focus()
+
+    def on_close(self):
+        """Handle window close: clear DB state then destroy UI."""
+        try:
+            self.controller.shutdown()
+        except Exception as exc:
+            logging.warning("Shutdown handler failed: %s", exc)
+        finally:
+            self.root.destroy()
 
     def run(self):
         self.root.mainloop()

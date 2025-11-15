@@ -4,9 +4,9 @@ from __future__ import annotations
 import ulid  # uuid helper
 from typing import List, Tuple
 
-from db_client import DBClient
-from embedding_client import EmbeddingClient
-from text_chunker import TextChunk, chunk_text
+from RAG.db_client import DBClient
+from RAG.embedding_client import EmbeddingClient
+from RAG.text_chunker import TextChunk, chunk_text
 
 
 class MemoryStore:
@@ -25,7 +25,7 @@ class MemoryStore:
     def _new_id(self) -> str:
         return str(ulid.new())  # CHAR(26) friendly
 
-    # Conversation & participant helpers ---------------------------------
+    # Conversation helpers ---------------------------------
     def create_conversation(self, title: str | None = None) -> str:
         conv_id = self._new_id()
         self.db.execute(
@@ -37,41 +37,16 @@ class MemoryStore:
         )
         return conv_id
 
-    def upsert_participant(
-        self,
-        kind: str,
-        display_name: str | None = None,
-        external_ref: str | None = None,
-        participant_id: str | None = None,
-    ) -> str:
-        pid = participant_id or self._new_id()
+    def delete_conversation(self, conv_id: str) -> None:
+        """Remove a conversation; cascades clear messages/chunks/embeddings."""
+        if not conv_id:
+            return
         self.db.execute(
             """
-            INSERT INTO participants (participant_id, kind, display_name, external_ref)
-            VALUES (%s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-              kind=VALUES(kind),
-              display_name=VALUES(display_name),
-              external_ref=VALUES(external_ref)
+            DELETE FROM conversations
+            WHERE conv_id = %s
             """,
-            (pid, kind, display_name, external_ref),
-        )
-        return pid
-
-    def add_participant_to_conversation(
-        self,
-        conv_id: str,
-        participant_id: str,
-        role_hint: str | None = None,
-    ):
-        self.db.execute(
-            """
-            INSERT INTO conversation_participants (conv_id, participant_id, role_hint)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-              role_hint=VALUES(role_hint)
-            """,
-            (conv_id, participant_id, role_hint),
+            (conv_id,),
         )
 
     # Message & embedding logic -------------------------------------------
@@ -80,7 +55,6 @@ class MemoryStore:
         conv_id: str,
         author_kind: str,
         content: str,
-        author_id: str | None = None,
     ) -> str:
         msg_id = self._new_id()
         row = self.db.fetchone(
@@ -94,28 +68,13 @@ class MemoryStore:
         self.db.execute(
             """
             INSERT INTO messages
-              (msg_id, conv_id, author_id, author_kind,
+              (msg_id, conv_id, author_kind,
                turn_index, content_raw)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s)
             """,
-            (msg_id, conv_id, author_id, author_kind, turn_index, content),
+            (msg_id, conv_id, author_kind, turn_index, content),
         )
         return msg_id
-
-    def insert_message_embedding(self, msg_id: str, content: str):
-        vec = self.emb_client.encode(content)
-        blob = vec.tobytes()
-        self.db.execute(
-            """
-            INSERT INTO message_embeddings
-              (msg_id, model, dim, vector_blob)
-            VALUES (%s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-              vector_blob=VALUES(vector_blob),
-              updated_at=CURRENT_TIMESTAMP
-            """,
-            (msg_id, self.emb_client.model_name, self.emb_client.dim, blob),
-        )
 
     def _message_chunks(self, content: str) -> List[TextChunk]:
         return chunk_text(
@@ -171,10 +130,8 @@ class MemoryStore:
         conv_id: str,
         author_kind: str,
         content: str,
-        author_id: str | None = None,
     ):
-        msg_id = self.insert_message(conv_id, author_kind, content, author_id)
-        self.insert_message_embedding(msg_id, content)
+        msg_id = self.insert_message(conv_id, author_kind, content)
         chunk_records = self.insert_message_chunks(conv_id, msg_id, content)
         for chunk_id, chunk in chunk_records:
             self.insert_chunk_embedding(chunk_id, chunk.text)

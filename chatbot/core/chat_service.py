@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import Optional, TYPE_CHECKING
 
 from chatbot.modules.llm_model import LLModel
@@ -15,6 +16,8 @@ if TYPE_CHECKING:  # type hints 전용, 실제 런타임 의존성은 주입
 
 
 class ChatService:
+    _think_pattern = re.compile(r"<think>.*?</think>", re.IGNORECASE | re.DOTALL)
+
     def __init__(
         self,
         llm: LLModel,
@@ -30,27 +33,12 @@ class ChatService:
         self.retrieval_top_k = retrieval_top_k
 
         self.conv_id: Optional[str] = None
-        self.user_participant_id: Optional[str] = None
-        self.bot_participant_id: Optional[str] = None
-
         if self.memory_store:
             self._initialize_conversation()
 
     def _initialize_conversation(self) -> None:
         try:
             self.conv_id = self.memory_store.create_conversation(title="Yeobong Session")
-            self.user_participant_id = self.memory_store.upsert_participant(
-                kind="user", display_name="Local User"
-            )
-            self.bot_participant_id = self.memory_store.upsert_participant(
-                kind="assistant", display_name="Yeobong Bot"
-            )
-            self.memory_store.add_participant_to_conversation(
-                self.conv_id, self.user_participant_id, role_hint="owner"
-            )
-            self.memory_store.add_participant_to_conversation(
-                self.conv_id, self.bot_participant_id, role_hint="assistant"
-            )
         except Exception as exc:
             logging.warning("Failed to initialize RAG memory conversation: %s", exc)
             self.memory_store = None
@@ -61,8 +49,8 @@ class ChatService:
         prompt = self.pb.build(user_input, context=context_text)
         reply = self.llm.generate(prompt)
 
-        self._persist_message("user", user_input, self.user_participant_id)
-        self._persist_message("assistant", reply, self.bot_participant_id)
+        self._persist_message("user", user_input)
+        self._persist_message("assistant", reply)
 
         return ChatResult(reply=reply)
 
@@ -86,17 +74,33 @@ class ChatService:
             formatted.append(f"[{prefix}] {snippet}")
         return "\n".join(formatted) if formatted else None
 
-    def _persist_message(self, author_kind: str, content: str, participant_id: Optional[str]) -> None:
+    def _persist_message(self, author_kind: str, content: str) -> None:
         if not self.memory_store or not self.conv_id:
             return
-        if not content:
+        clean = self._strip_think(content)
+        if not clean:
             return
         try:
             self.memory_store.save_with_embedding(
                 conv_id=self.conv_id,
                 author_kind=author_kind,
-                content=content,
-                author_id=participant_id,
+                content=clean,
             )
         except Exception as exc:
             logging.warning("Failed to persist %s message: %s", author_kind, exc)
+
+    def close_session(self) -> None:
+        if not self.memory_store or not self.conv_id:
+            return
+        try:
+            self.memory_store.delete_conversation(self.conv_id)
+        except Exception as exc:
+            logging.warning("Failed to delete conversation %s: %s", self.conv_id, exc)
+        finally:
+            self.conv_id = None
+
+    def _strip_think(self, text: Optional[str]) -> str:
+        if not text:
+            return ""
+        cleaned = self._think_pattern.sub("", text)
+        return cleaned.strip()

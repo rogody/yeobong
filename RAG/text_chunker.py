@@ -16,7 +16,7 @@ class TextChunk:
 
 def chunk_text(
     text: str,
-    chunk_size: int = 250,
+    chunk_size: int = 150,
     overlap_ratio: float = 0.2,
 ) -> List[TextChunk]:
     """

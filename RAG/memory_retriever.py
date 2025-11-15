@@ -1,7 +1,7 @@
 ﻿# memory_retriever.py
 import numpy as np
-from db_client import DBClient
-from embedding_client import EmbeddingClient
+from RAG.db_client import DBClient
+from RAG.embedding_client import EmbeddingClient
 
 
 class MemoryRetriever:

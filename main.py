@@ -30,7 +30,7 @@ def main():
     # chatservice는 chatcontroller의 init으로 넘김
     # chatcontroller는 chatui의 init으로 넘김
 
-    model_name = "WeiboAI/VibeThinker-1.5B"
+    model_name = "Qwen/Qwen3-1.7B"
 
     chunk_size = _int_env("RAG_CHUNK_SIZE", 250)
     chunk_overlap = _float_env("RAG_CHUNK_OVERLAP", 0.2)
@@ -46,7 +46,7 @@ def main():
     try:
         db_client = DBClient()
         embedding_client = EmbeddingClient()
-        memory_store = MemoryStore(
+        memory_store = MemoryStore( 
             db_client,
             embedding_client,
             chunk_token_size=chunk_size,
