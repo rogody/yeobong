@@ -28,7 +28,7 @@ class MemoryRetriever:
             row["vector"] = vec
         return rows
 
-    def search(self, query: str, top_k: int = 5):
+    def search(self, query: str, top_k: int = 3):
         query_vec = self.emb_client.encode(query)
         candidates = self._load_candidates()
 

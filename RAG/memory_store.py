@@ -14,7 +14,7 @@ class MemoryStore:
         self,
         db: DBClient,
         emb_client: EmbeddingClient,
-        chunk_token_size: int = 250,
+        chunk_token_size: int = 150,
         chunk_overlap_ratio: float = 0.2,
     ):
         self.db = db
