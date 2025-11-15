@@ -1,0 +1,99 @@
+/* ================================
+   0. DB 생성
+   ================================ */
+CREATE DATABASE IF NOT EXISTS yubongdb
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_0900_ai_ci;
+
+USE yubongdb;
+
+
+/* ================================
+   1. 대화 세션 (챗방 단위)
+   ================================ */
+CREATE TABLE IF NOT EXISTS conversations (
+  conv_id    CHAR(26) PRIMARY KEY,                   -- ULID/UUID 등
+  title      VARCHAR(200) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  closed_at  TIMESTAMP NULL
+) ENGINE=InnoDB;
+
+
+/* ================================
+   2. 메시지 원문 (한 턴 전체)
+   ================================ */
+CREATE TABLE IF NOT EXISTS messages (
+  msg_id      CHAR(26) PRIMARY KEY,
+  conv_id     CHAR(26) NOT NULL,
+  -- author_id는 제거됨. user/assistant 구분만 필요하므로 kind만 유지
+  author_kind ENUM('user','assistant','system','tool') NOT NULL,
+  turn_index  INT NOT NULL,                          -- 세션 내 순번
+  content_raw MEDIUMTEXT NOT NULL,                   -- 원문 전체
+  token_count INT NULL,                              -- 토큰 수(옵션)
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                 ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_msg_conv_turn (conv_id, turn_index),
+  INDEX idx_msg_conv_time (conv_id, created_at),
+
+  CONSTRAINT fk_msg_conv
+    FOREIGN KEY (conv_id) REFERENCES conversations(conv_id)
+    ON DELETE CASCADE,
+
+  -- BM25용 FULLTEXT 인덱스
+  FULLTEXT KEY ftx_msg_content (content_raw)
+) ENGINE=InnoDB;
+
+
+/* ================================
+   3. 메시지 청크 (RAG 검색 단위)
+   ================================ */
+CREATE TABLE IF NOT EXISTS message_chunks (
+  chunk_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+  conv_id     CHAR(26) NOT NULL,
+  msg_id      CHAR(26) NOT NULL,
+  ord         INT NOT NULL,                          -- 메시지 내 청크 순서 (1부터)
+  token_start INT NULL,                              -- 원문 내 토큰 범위(옵션)
+  token_end   INT NULL,
+  chunk_text  MEDIUMTEXT NOT NULL,                   -- 실제 청크 텍스트
+  tags        JSON NULL,                             -- 자동 태깅 등(옵션)
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                 ON UPDATE CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uk_msg_ord (msg_id, ord),
+  INDEX idx_chunks_conv_msg (conv_id, msg_id),
+
+  CONSTRAINT fk_chunk_msg
+    FOREIGN KEY (msg_id) REFERENCES messages(msg_id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_chunk_conv
+    FOREIGN KEY (conv_id) REFERENCES conversations(conv_id)
+    ON DELETE CASCADE,
+
+  FULLTEXT KEY ftx_chunk_text (chunk_text)
+) ENGINE=InnoDB;
+
+
+/* ================================
+   4. 청크 임베딩 (벡터 저장)
+   ================================ */
+CREATE TABLE IF NOT EXISTS chunk_embeddings (
+  emb_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+  chunk_id    BIGINT NOT NULL,
+  model       VARCHAR(64) NOT NULL,                  -- 예: "bge-large-en"
+  dim         INT NOT NULL,                          -- 예: 1024
+  vector_blob LONGBLOB NOT NULL,                     -- float32[] 직렬화
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                 ON UPDATE CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uk_chunk_model (chunk_id, model),
+  INDEX idx_emb_model_time (model, updated_at),
+
+  CONSTRAINT fk_emb_chunk
+    FOREIGN KEY (chunk_id) REFERENCES message_chunks(chunk_id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
