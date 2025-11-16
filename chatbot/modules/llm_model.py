@@ -28,7 +28,7 @@ class LLModel:
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
         generation_config = dict(
-            max_new_tokens=40960,
+            max_new_tokens=128,
             do_sample=True,
             temperature=0.6,  # 0.6 or 1.0, you can set it according to your needs
             top_p=0.95,

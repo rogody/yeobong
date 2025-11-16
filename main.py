@@ -11,7 +11,7 @@ def main():
     # chatservice는 chatcontroller의 init으로 넘김
     # chatcontroller는 chatui의 init으로 넘김
 
-    model_name = "WeiboAI/VibeThinker-1.5B"
+    model_name = "Qwen/Qwen3-1.7B"
 
     # 1) LLM 로드 (조금 시간 걸릴 수 있음)
     llm_client = LLModel(model_name)
