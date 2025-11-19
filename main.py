@@ -1,9 +1,12 @@
+﻿import sys
+import live2d.v3 as live2d
 from chatbot.modules.llm_model import LLModel
-from chatbot.app.ui import ChatUI
-from chatbot.app.controller import ChatController
+from chatbot.app.chatgui import MainWindow
+from chatbot.app.chat_thread import ChatWorker
 from chatbot.core.chat_service import ChatService
 from chatbot.core.prompt_builder import PromptBuilder
-import customtkinter as ctk
+from PySide6.QtWidgets import QApplication
+ 
 
 
 def main():
@@ -18,11 +21,14 @@ def main():
 
     prompt_builder = PromptBuilder()
     chat_service = ChatService(llm_client, prompt_builder)
-    chat_controller = ChatController(chat_service)
+    #chat_thread = ChatWorker(chat_service)
 
     # 3) UI 실행
-    ui = ChatUI(chat_controller)
-    ui.run()
+    app = QApplication(sys.argv)
+    window = MainWindow(chat_service)
+    window.show()
+    app.exec()
+    live2d.dispose()
 
 
 if __name__ == "__main__":
