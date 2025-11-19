@@ -38,7 +38,7 @@ def callback():
 class Live2DWidget(QOpenGLWidget):
 
     def __init__(self) -> None:
-        live2d
+        live2d.init()
         super().__init__()
         self.isInLA = False
         self.clickInLA = False
