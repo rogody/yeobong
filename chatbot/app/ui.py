@@ -33,7 +33,7 @@ from PySide6.QtOpenGLWidgets import QOpenGLWidget
 CURRENT_DIRECTORY = os.path.split(__file__)[0]
 PARENT_DIRECTORY = os.path.dirname(os.path.dirname(CURRENT_DIRECTORY))
 MODEL_DIRECTORY = os.path.join(PARENT_DIRECTORY,  "Resources\mao_pro_en\\runtime\\mao_pro.model3.json")
-
+motionch = 0
 
 # --- 1. 감정 → expression ID 매핑 ---
 
@@ -164,6 +164,8 @@ class MainWindow(QMainWindow):
         btn_happy = QPushButton("Happy")
         btn_sad = QPushButton("Sad")
         btn_special = QPushButton("Special Motion")
+        btn_change = QPushButton("Change")
+        btn_change.clicked.connect(lambda: self.change_motion())
 
         btn_neutral.clicked.connect(lambda: self.set_emotion("neutral"))
         btn_happy.clicked.connect(lambda: self.set_emotion("happy"))
@@ -179,6 +181,7 @@ class MainWindow(QMainWindow):
         right_layout.addWidget(btn_happy)
         right_layout.addWidget(btn_sad)
         right_layout.addWidget(btn_special)
+        right_layout.addWidget(btn_change)
 
         right_widget = QWidget()
         right_widget.setLayout(right_layout)
@@ -212,6 +215,12 @@ class MainWindow(QMainWindow):
     def play_special_motion(self):
         self.log.append("Play special motion")
         self.live2d_widget.play_motion("", 4)
+
+    def change_motion(self):
+        global motionch 
+        motionch += 1
+        self.log.append("Change motion")
+        self.live2d_widget.play_motion("", motionch % 6)
 
 
 class ChatUI():

@@ -3,7 +3,7 @@ from chatbot.app.ui import ChatUI
 from chatbot.app.controller import ChatController
 from chatbot.core.chat_service import ChatService
 from chatbot.core.prompt_builder import PromptBuilder
-import customtkinter as ctk
+# import customtkinter as ctk
 
 
 def main():
