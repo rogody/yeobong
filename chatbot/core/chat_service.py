@@ -1,23 +1,76 @@
 ﻿
 #module에서 구현한 것들을 사용하여 prompt 생성 -> llm으로 답변 생성 -> 저장 -> 답변 반환
+"""LLM 서비스 계층: 프롬프트 생성 -> 모델 호출 -> 결과/메모리 연동"""
+
+from __future__ import annotations
+
+import logging
+import re
+from typing import Optional, TYPE_CHECKING
+
 from chatbot.modules.llm_model import LLModel
 from chatbot.core.Types import ChatResult
 from chatbot.core.prompt_builder import PromptBuilder
 
+from Emotion.emotion_model import EmotionAnalyzer                       # 감정 모델 import 
+
+if TYPE_CHECKING:  # type hints 전용, 실제 런타임 의존성은 주입
+    from RAG.memory_store import MemoryStore
+    from RAG.memory_retriever import MemoryRetriever
+
+
 class ChatService:
-    def __init__(self, llm: LLModel, prompt_builder: PromptBuilder):
+    _think_pattern = re.compile(r"<think>.*?</think>", re.IGNORECASE | re.DOTALL)
+
+    def __init__(
+        self,
+        llm: LLModel,
+        prompt_builder: PromptBuilder,
+    
+        emotion_analyzer: EmotionAnalyzer,
+        # 타입 체크용
+        memory_store: Optional["MemoryStore"] = None,
+        memory_retriever: Optional["MemoryRetriever"] = None,
+        retrieval_top_k: int = 4,
+    ):
         self.llm = llm
         self.pb = prompt_builder
+        self.memory_store = memory_store
+        #emotion
+        self.emotion_analyzer = emotion_analyzer                          # 감정 추가
+        self.recent_turns = []          # [(speaker, text), ...]
+        self.long_emotion_summary = ""     # 감정/내용 요약 텍스트
+        self.max_recent_turns = 6       # 그대로 프롬프트에 넣을 턴 수
+        #emotion
+        self.memory_retriever = memory_retriever
+        self.retrieval_top_k = retrieval_top_k
+
+        self.conv_id: Optional[str] = None
+        if self.memory_store:
+            self._initialize_conversation()
+
+    def _initialize_conversation(self) -> None:
+        try:
+            self.conv_id = self.memory_store.create_conversation(title="Yeobong Session")
+        except Exception as exc:
+            logging.warning("Failed to initialize RAG memory conversation: %s", exc)
+            self.memory_store = None
+            self.memory_retriever = None
+
+    def run_turn(self, user_input: str) -> ChatResult:
+        context_text = self._build_context(user_input)
+        #emotion
+        context_emotion_text = self._build_emotion_context(user_input)    # 감정 context 생성
         
-    def run_turn(self, user_input:str) -> ChatResult:
-        
-        '''
-        rag
-        lora
-        emotion
-        등등
-        '''
-        prompt = self.pb.build(user_input)
+        #emotion
+        prompt = self.pb.build(
+                user_input, 
+                context=context_text,
+                #emotion 
+                emotion_context=context_emotion_text,   
+                long_emotion_summary=self.long_emotion_summary,  # 장기 요약
+                #emotion
+                )  
         reply = self.llm.generate(prompt)
         
   

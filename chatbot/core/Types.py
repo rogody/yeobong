@@ -13,3 +13,4 @@ from dataclasses import dataclass
 @dataclass
 class ChatResult:
     reply: str
+
