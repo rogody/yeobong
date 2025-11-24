@@ -1,5 +1,5 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
-import torch
+
 
 class LLModel:
     def __init__(self, model_path):
@@ -28,40 +28,25 @@ class LLModel:
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
         generation_config = dict(
-            max_new_tokens=128,
+            max_new_tokens=40960,
             do_sample=True,
             temperature=0.6,  # 0.6 or 1.0, you can set it according to your needs
             top_p=0.95,
             top_k=None,  # in vLLM or SGlang, please set top_k to -1, it means skip top_k for sampling
         )
-        self.model.eval()
-
-        with torch.no_grad():
-            generated_ids = self.model.generate(
-                **model_inputs, generation_config=GenerationConfig(**generation_config)
-            )
-            
-        '''
+        generated_ids = self.model.generate(
+            **model_inputs, generation_config=GenerationConfig(**generation_config)
+        )
         generated_ids = [
             output_ids[len(input_ids) :]
             for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
 
-        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-        '''
-        output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist() 
+        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[
+            0
+        ]
 
-        # parsing thinking content
-        try:
-            # rindex finding 151668 (</think>)
-            index = len(output_ids) - output_ids[::-1].index(151668)
-        except ValueError:
-            index = 0
-
-        thinking_content = self.tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
-        content = self.tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
-        
-        return content
+        return response
 
 
 # Example usage:
