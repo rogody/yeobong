@@ -5,8 +5,8 @@ from chatbot.app.chatgui import MainWindow
 from chatbot.app.controller import ChatController
 from chatbot.core.chat_service import ChatService
 from chatbot.core.prompt_builder import PromptBuilder
-from RAG.factory import init_rag_components
-from Emotion.emotion_model import EmotionAnalyzer   
+from chatbot.modules.RAG.factory import init_rag_components
+from chatbot.modules.Emotion.emotion_model import EmotionAnalyzer   
 # 감정 모델 import
 from PySide6.QtWidgets import QApplication
 from chatbot.app.chat_thread import ChatWorker

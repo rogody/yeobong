@@ -62,6 +62,7 @@ class LLModel:
         thinking_content = self.tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
         content = self.tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
         
+        print(thinking_content)
         return content
 
 

@@ -18,6 +18,7 @@ import live2d.v3 as live2d
 CURRENT_DIRECTORY = os.path.split(__file__)[0]
 PARENT_DIRECTORY = os.path.dirname(os.path.dirname(CURRENT_DIRECTORY))
 MAO_MODEL_DIRECTORY = os.path.join(PARENT_DIRECTORY,  "Resources/mao_pro_en/runtime/mao_pro.model3.json")
+EPSILON_MODEL_DIRECTORY = os.path.join(PARENT_DIRECTORY, "Resources/Epsilon/runtime/Epsilon.model3.json")
 
 
 # --- 1. 감정 → expression ID 매핑 ---
@@ -53,8 +54,8 @@ class Live2DWidget(QOpenGLWidget):
         self.systemScale = QGuiApplication.primaryScreen().devicePixelRatio()
     
     def set_model(self, name:str):
-        if(name == "mao"):
-            self.model_path = MAO_MODEL_DIRECTORY
+        if(name == "epsilon"):
+            self.model_path = EPSILON_MODEL_DIRECTORY
         #elif(name == "huohuo"):
             #self.model_path = HUOHUO_MODEL_DIRECTORY
         #elif(name=="frieren"):
@@ -154,9 +155,9 @@ class Live2DWidget(QOpenGLWidget):
             print("pressed")
             #self.rotate = self.rotate+90
             #self.model.Rotate(self.rotate)
-            if(self.model.IsMotionFinished() == True):
-                self.model.StartRandomMotion()
-                self.model.SetRandomExpression()
+            #if(self.model.IsMotionFinished() == True):
+                #self.model.StartRandomMotion()
+                #self.model.SetRandomExpression()
 
     def mouseReleaseEvent(self, event):
         x, y = event.scenePosition().x(), event.scenePosition().y()
@@ -173,3 +174,23 @@ class Live2DWidget(QOpenGLWidget):
             self.move(int(self.x() + x - self.clickX), int(self.y() + y - self.clickY))
         xp, yp = event.globalPosition().x() - self.x(), event.globalPosition().y() - self.y()
         self.model.Drag(xp, yp)   
+        
+    def set_motion(self, emotion):
+        if not self.model:
+            return
+        
+        if emotion == "anger":
+            self.model.StartMotion("special", 3, 1)
+        elif emotion == "disgust":
+            self.model.StartMotion("special", 4, 1)
+        elif emotion == "fear":
+            self.model.StartMotion("normal", 6, 1)
+        elif emotion == "joy":
+            self.model.StartMotion("normal", 3, 1)
+        elif emotion == "neutral":
+            self.model.StartMotion("Idle", 0, 2)
+        elif emotion == "sadness":
+            self.model.StartMotion("special", 2, 1)
+        elif emotion == "surprise":
+            self.model.StartMotion("special", 1, 2)
+            self.model.setExpression("Surprised")

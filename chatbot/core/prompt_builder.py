@@ -9,7 +9,7 @@ from typing import Optional
 
 
 class PromptBuilder:
-    def __init__(self, system_prompt: str = ""):
+    def __init__(self, system_prompt: str = "You are a user's girlfriend"):
         self.system_prompt = system_prompt.strip()
 
     def build(
@@ -28,8 +28,10 @@ class PromptBuilder:
             segments.append(f"Context:\n{context}")
         if emotion_context:
             segments.append(f"Emotion Context:\n{emotion_context}")
+            print("emotion:"+emotion_context)
         if long_emotion_summary:
             segments.append(f"Long-term summary:\n{long_emotion_summary}")
+            print("long-term summary: "+long_emotion_summary)
         
         segments.append(f"User:\n{user_input}")
         return "\n\n".join(segments)

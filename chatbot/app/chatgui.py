@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QLineEdit,
 )
+from PySide6.QtGui import QColor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
 
@@ -62,14 +63,15 @@ class MainWindow(QMainWindow):
     def set_ui(self):
         self.setWindowTitle("AI chat bot ")
         self.resize(600, 500)
+        #self.setStyleSheet("background-color: black;")
         
-        self.mao_button = QPushButton("MAO")
+        self.epsilon_button = QPushButton("EPSILON")
         #self.huohuo_button = QPushButton("HUOHUO")
         #elf.frieren_button = QPushButton("FRIEREN")
         self.delete_button = QPushButton("DELETE")
         
         model_layout = QHBoxLayout()
-        model_layout.addWidget(self.mao_button)
+        model_layout.addWidget(self.epsilon_button)
         #model_layout.addWidget(self.huohuo_button)
         #model_layout.addWidget(self.frieren_button)
         model_layout.addWidget(self.delete_button)
@@ -102,7 +104,7 @@ class MainWindow(QMainWindow):
         
         self.setCentralWidget(chatbot_widget)
         
-        self.mao_button.clicked.connect(self.show_mao)
+        self.epsilon_button.clicked.connect(self.show_epsilon)
         #self.huohuo_button.clicked.connect(self.show_haru)
         #self.frieren_button.clicked.connect(self.show_frieren)
         self.delete_button.clicked.connect(self.delete_model)
@@ -126,13 +128,14 @@ class MainWindow(QMainWindow):
         self.result_display.append(self.model_name + ": " + llm_response.reply)
         self.enter_button.setEnabled(True)
         self.line_edit.setEnabled(True)
-        
-    
-    def show_mao(self):
-        self.model_name = "MAO"
+        self.live2d_widget.set_motion(llm_response.emotion)
+
+
+    def show_epsilon(self):
+        self.model_name = "EPSILON"
         live2d.dispose()
         live2d.init()
-        self.show_live2d("mao")
+        self.show_live2d("epsilon")
     
     '''
     def show_haru(self):

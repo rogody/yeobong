@@ -2,10 +2,10 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-from RAG.db_client import DBClient
-from RAG.embedding_client import EmbeddingClient
-from RAG.memory_store import MemoryStore
-from RAG.memory_retriever import MemoryRetriever
+from .db_client import DBClient
+from .embedding_client import EmbeddingClient
+from .memory_store import MemoryStore
+from .memory_retriever import MemoryRetriever
 
 
 def _int_env(name: str, default: int) -> int:

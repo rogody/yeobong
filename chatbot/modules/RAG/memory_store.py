@@ -4,9 +4,9 @@ from __future__ import annotations
 import ulid  # uuid helper
 from typing import List, Tuple
 
-from RAG.db_client import DBClient
-from RAG.embedding_client import EmbeddingClient
-from RAG.text_chunker import TextChunk, chunk_text
+from .db_client import DBClient
+from .embedding_client import EmbeddingClient
+from .text_chunker import TextChunk, chunk_text
 
 
 class MemoryStore:

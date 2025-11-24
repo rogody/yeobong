@@ -9,14 +9,14 @@ import re
 from typing import Optional, TYPE_CHECKING
 
 from chatbot.modules.llm_model import LLModel
-from chatbot.core.Types import ChatResult
+from chatbot.core.types import ChatResult
 from chatbot.core.prompt_builder import PromptBuilder
 
-from Emotion.emotion_model import EmotionAnalyzer                       # 감정 모델 import 
+from chatbot.modules.Emotion.emotion_model import EmotionAnalyzer                       # 감정 모델 import 
 
 if TYPE_CHECKING:  # type hints 전용, 실제 런타임 의존성은 주입
-    from RAG.memory_store import MemoryStore
-    from RAG.memory_retriever import MemoryRetriever
+    from chatbot.modules.RAG.memory_store import MemoryStore
+    from chatbot.modules.RAG.memory_retriever import MemoryRetriever
 
 
 class ChatService:
@@ -73,6 +73,9 @@ class ChatService:
                 )  
         reply = self.llm.generate(prompt)
         
+        ai_emotion = self._build_emotion_context(reply, 1)
+        print("AI emotion: " + ai_emotion)
+        
   
         # 히스토리에 이번 턴 추가
         self.recent_turns.append(("user", user_input))
@@ -85,10 +88,10 @@ class ChatService:
         self._persist_message("user", user_input)
         self._persist_message("assistant", reply)
 
-        return ChatResult(reply=reply)
+        return ChatResult(reply=reply, emotion = ai_emotion)
 
     #emotion
-    def _build_emotion_context(self, user_input: str) -> Optional[str]:
+    def _build_emotion_context(self, user_input: str, aiflag = 0) -> Optional[str]:
         # EmotionAnalyzer가 아직 없으면 그냥 건너뜀
         if not hasattr(self, "emotion_analyzer") or self.emotion_analyzer is None:
             return None
@@ -119,6 +122,10 @@ class ChatService:
         emo_list.sort(key=lambda r: r["score"], reverse=True)
         top = emo_list[0]
 
+
+        if(aiflag == 1):
+            return top['label']
+        
         # LLM 프롬프트에 넣을 감정 컨텍스트 문자열 생성
         lines = ["Emotion:"]
         lines.append(f"- primary: {top['label']} ({top['score']:.2f})")
