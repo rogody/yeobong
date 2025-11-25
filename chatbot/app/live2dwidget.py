@@ -183,8 +183,10 @@ class Live2DWidget(QOpenGLWidget):
             self.model.StartMotion("special", 3, 1)
         elif emotion == "disgust":
             self.model.StartMotion("special", 4, 1)
+            self.model.SetExpression("f02")
         elif emotion == "fear":
-            self.model.StartMotion("normal", 6, 1)
+            self.model.StartMotion("special", 1, 1)
+            self.model.SetExpression("Sad")
         elif emotion == "joy":
             self.model.StartMotion("normal", 3, 1)
         elif emotion == "neutral":
@@ -192,5 +194,5 @@ class Live2DWidget(QOpenGLWidget):
         elif emotion == "sadness":
             self.model.StartMotion("special", 2, 1)
         elif emotion == "surprise":
-            self.model.StartMotion("special", 1, 2)
-            self.model.setExpression("Surprised")
+            self.model.StartMotion("normal", 6, 2)
+            self.model.SetExpression("Surprised")

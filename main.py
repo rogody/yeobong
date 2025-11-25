@@ -31,7 +31,7 @@ def main():
         memory_retriever=rag.memory_retriever,
         retrieval_top_k=rag.settings.retrieval_top_k,
     )
-    chat_controller = ChatController(chat_service)
+    #chat_controller = ChatController(chat_service)
 
     # 3) UI 실행
     app = QApplication(sys.argv)
