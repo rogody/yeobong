@@ -17,20 +17,7 @@ import live2d.v3 as live2d
 
 CURRENT_DIRECTORY = os.path.split(__file__)[0]
 PARENT_DIRECTORY = os.path.dirname(os.path.dirname(CURRENT_DIRECTORY))
-MAO_MODEL_DIRECTORY = os.path.join(PARENT_DIRECTORY,  "Resources/mao_pro_en/runtime/mao_pro.model3.json")
 EPSILON_MODEL_DIRECTORY = os.path.join(PARENT_DIRECTORY, "Resources/Epsilon/runtime/Epsilon.model3.json")
-
-
-# --- 1. 감정 → expression ID 매핑 ---
-
-# 실제 어떤 exp가 어떤 표정인지 몰라도 일단 이렇게 넣고
-# 버튼 눌러보면서 "아 이게 happy네" 식으로 조정하면 됨.
-EMOTION_EXPRESSION_ID = {
-    "neutral": "exp_01",
-    "happy": "exp_02",
-    "sad": "exp_05",
-}
-
 
 def callback():
     print("motion end")

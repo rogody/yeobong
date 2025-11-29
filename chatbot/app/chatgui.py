@@ -9,6 +9,7 @@ from chatbot.core.chat_service import ChatService
 from .live2dwidget import Live2DWidget
 from .chat_thread import ChatWorker
 from chatbot.core.types import ChatResult
+from .ply_render import WebViewer
 
 from OpenGL.GL import (
     glClearColor,
@@ -36,27 +37,13 @@ from PySide6.QtGui import QColor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
 
-# --- 1. 감정 → expression ID 매핑 ---
-
-# 실제 어떤 exp가 어떤 표정인지 몰라도 일단 이렇게 넣고
-# 버튼 눌러보면서 "아 이게 happy네" 식으로 조정하면 됨.
-EMOTION_EXPRESSION_ID = {
-    "neutral": "exp_01",
-    "happy": "exp_02",
-    "sad": "exp_05",
-}
-
-
-def callback():
-    print("motion end")
-
-
 class MainWindow(QMainWindow):
     def __init__(self, service: ChatService):
         super().__init__()
         live2d.init()
         self.live2d_widget = Live2DWidget()
         self.set_ui()
+        self.gs_widget = WebViewer()
         self.chat_service = service
         self.model_name = "Ai Bot"
 
@@ -66,12 +53,14 @@ class MainWindow(QMainWindow):
         #self.setStyleSheet("background-color: black;")
         
         self.epsilon_button = QPushButton("EPSILON")
+        self.gs_button = QPushButton("3DGS")
         #self.huohuo_button = QPushButton("HUOHUO")
         #elf.frieren_button = QPushButton("FRIEREN")
         self.delete_button = QPushButton("DELETE")
         
         model_layout = QHBoxLayout()
         model_layout.addWidget(self.epsilon_button)
+        model_layout.addWidget(self.gs_button)
         #model_layout.addWidget(self.huohuo_button)
         #model_layout.addWidget(self.frieren_button)
         model_layout.addWidget(self.delete_button)
@@ -105,6 +94,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(chatbot_widget)
         
         self.epsilon_button.clicked.connect(self.show_epsilon)
+        self.gs_button.clicked.connect(self.show_gs)
         #self.huohuo_button.clicked.connect(self.show_haru)
         #self.frieren_button.clicked.connect(self.show_frieren)
         self.delete_button.clicked.connect(self.delete_model)
@@ -131,6 +121,9 @@ class MainWindow(QMainWindow):
         self.live2d_widget.set_motion(llm_response.emotion)
 
 
+    def show_gs(self):
+        self.gs_widget.show()
+
     def show_epsilon(self):
         self.model_name = "EPSILON"
         live2d.dispose()
@@ -152,6 +145,7 @@ class MainWindow(QMainWindow):
         self.model_name = "Ai Bot"
         live2d.dispose()
         self.live2d_widget.close()
+        self.gs_widget.close()
 
     def show_live2d(self, name:str):
         self.live2d_widget.set_model(name)

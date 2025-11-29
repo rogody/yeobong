@@ -1,4 +1,5 @@
 ﻿import sys
+import os
 import live2d.v3 as live2d
 from chatbot.modules.llm_model import LLModel
 from chatbot.app.chatgui import MainWindow
@@ -45,4 +46,5 @@ def main():
 
 
 if __name__ == "__main__":
+    
     main()
