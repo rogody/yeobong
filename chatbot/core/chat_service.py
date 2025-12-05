@@ -72,6 +72,7 @@ class ChatService:
                 #emotion
                 )  
         reply = self.llm.generate(prompt)
+        reply = self._strip_think(reply)
         
         ai_emotion = self._build_emotion_context(reply, 1)
         print("AI emotion: " + ai_emotion)

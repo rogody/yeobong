@@ -1,9 +1,7 @@
 ﻿import sys
-import os
 import live2d.v3 as live2d
 from chatbot.modules.llm_model import LLModel
 from chatbot.app.chatgui import MainWindow
-from chatbot.app.controller import ChatController
 from chatbot.core.chat_service import ChatService
 from chatbot.core.prompt_builder import PromptBuilder
 from chatbot.modules.RAG.factory import init_rag_components
@@ -13,10 +11,11 @@ from PySide6.QtWidgets import QApplication
 from chatbot.app.chat_thread import ChatWorker
 
 
-def main():
-    model_name = "Qwen/Qwen3-1.7B"
 
-    llm_client = LLModel(model_name)
+def main():
+    model_path = "Qwen/Qwen3-1.7B"
+
+    llm_client = LLModel(model_path)
     rag = init_rag_components()
     emotion_analyzer = EmotionAnalyzer()                          # 감정 model 생성
 

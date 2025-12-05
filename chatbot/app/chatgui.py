@@ -1,30 +1,28 @@
-#from pathlib import Path
-#import math
-#import time
-#import os
-import sys
 
-#from chatbot.modules.llm_model import LLModel
+import os
 from chatbot.core.chat_service import ChatService
 from .live2dwidget import Live2DWidget
 from .chat_thread import ChatWorker
 from chatbot.core.types import ChatResult
 from .ply_render import WebViewer
 
+CURRENT_DIRECTORY = os.path.split(__file__)[0]
+PROJECT_PATH = os.path.dirname(os.path.dirname(CURRENT_DIRECTORY))
+PLY_PATH = os.path.join(PROJECT_PATH, "Resources", "jsw2")
+
+'''
 from OpenGL.GL import (
     glClearColor,
     glClear,
     GL_COLOR_BUFFER_BIT,
     GL_DEPTH_BUFFER_BIT,
 )
+'''
 
 import live2d.v3 as live2d
-from live2d.v3 import StandardParams
 
-from PySide6.QtCore import QThread, Signal, Slot
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QWidget,
     QHBoxLayout,
@@ -33,8 +31,8 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QLineEdit,
 )
-from PySide6.QtGui import QColor
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from PySide6.QtGui import QCloseEvent
+#from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
 
 class MainWindow(QMainWindow):
@@ -49,20 +47,16 @@ class MainWindow(QMainWindow):
 
     def set_ui(self):
         self.setWindowTitle("AI chat bot ")
-        self.resize(600, 500)
+        self.resize(700, 700)
         #self.setStyleSheet("background-color: black;")
         
         self.epsilon_button = QPushButton("EPSILON")
         self.gs_button = QPushButton("3DGS")
-        #self.huohuo_button = QPushButton("HUOHUO")
-        #elf.frieren_button = QPushButton("FRIEREN")
         self.delete_button = QPushButton("DELETE")
         
         model_layout = QHBoxLayout()
         model_layout.addWidget(self.epsilon_button)
         model_layout.addWidget(self.gs_button)
-        #model_layout.addWidget(self.huohuo_button)
-        #model_layout.addWidget(self.frieren_button)
         model_layout.addWidget(self.delete_button)
         model_widget = QWidget()
         model_widget.setLayout(model_layout)
@@ -91,12 +85,15 @@ class MainWindow(QMainWindow):
         chatbot_widget = QWidget()
         chatbot_widget.setLayout(chatbot_layout)
         
-        self.setCentralWidget(chatbot_widget)
+        self.main_layout = QHBoxLayout()
+        self.main_layout.addWidget(chatbot_widget)
+        
+        main_widget = QWidget()
+        main_widget.setLayout(self.main_layout)
+        self.setCentralWidget(main_widget)
         
         self.epsilon_button.clicked.connect(self.show_epsilon)
         self.gs_button.clicked.connect(self.show_gs)
-        #self.huohuo_button.clicked.connect(self.show_haru)
-        #self.frieren_button.clicked.connect(self.show_frieren)
         self.delete_button.clicked.connect(self.delete_model)
         
     
@@ -120,49 +117,31 @@ class MainWindow(QMainWindow):
         self.line_edit.setEnabled(True)
         self.live2d_widget.set_motion(llm_response.emotion)
 
-
     def show_gs(self):
+        self.main_layout.addWidget(self.gs_widget)
         self.gs_widget.show()
+        self.resize(1200, 700)
 
     def show_epsilon(self):
-        self.model_name = "EPSILON"
         live2d.dispose()
         live2d.init()
         self.show_live2d("epsilon")
     
-    '''
-    def show_haru(self):
-        live2d.dispose()
-        live2d.init()
-        self.show_live2d("huohuo")
-        
-    def show_frieren(self):
-        live2d.dispose()
-        live2d.init()
-        self.show_live2d("frieren")
-    '''
     def delete_model(self):
-        self.model_name = "Ai Bot"
         live2d.dispose()
         self.live2d_widget.close()
-        self.gs_widget.close()
+        self.gs_widget.hide()
+        self.main_layout.removeWidget(self.gs_widget)
+        self.resize(700, 700)
 
     def show_live2d(self, name:str):
         self.live2d_widget.set_model(name)
         self.live2d_widget.show()
+
+    def closeEvent(self, event: QCloseEvent):
+        live2d.dispose()
+        print("closing chat service and db connections")
+        self.chat_service.close_session()
+        event.accept()
         
-'''
-if __name__ == "__main__":
-    
-    live2d.init()
-    app = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-
-    app.exec()
-    
-    live2d.dispose()
-'''
-
     

@@ -1,6 +1,5 @@
 ﻿"""
-프롬프트 생성
-향후 PAD/RAG/감정 등 여러 정보를 조합해 확장할 수 있도록 설계.
+generate prompt for LLM by combining system prompt, RAG context, emotion context, and user input.
 """
 
 from __future__ import annotations

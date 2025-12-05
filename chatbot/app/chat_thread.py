@@ -1,5 +1,5 @@
 from __future__ import annotations
-from PySide6.QtCore import QThread, Signal, Slot
+from PySide6.QtCore import QThread, Signal
 from chatbot.core.chat_service import ChatService
 
 from chatbot.core.chat_service import ChatService
