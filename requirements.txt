@@ -1,0 +1,11 @@
+transformers>=4.48.0
+torch
+numpy>=2.1,<2.3
+tqdm==4.66.4
+accelerate>=0.34.2
+Pyside6
+live2d-py
+PyOpenGL
+sentence-transformers>=3.0.1
+pymysql>=1.1.0
+ulid-py>=1.1.0
