@@ -34,7 +34,7 @@ class EmotionAnalyzer:
         if not text:
             return []
 
-        result = self.pipe(text)
+        result = self.pipe(text, truncation=True, max_length=512)
 
         # pipeline 출력 형태가 [ [ {...}, {...} ] ] 일 수도 있어서 한 번 풀어줌
         if isinstance(result, list) and len(result) == 1 and isinstance(result[0], list):

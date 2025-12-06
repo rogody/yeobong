@@ -42,19 +42,29 @@ class DBClient:
             "password": password or _DB_SETTINGS["password"],
             "db": db or _DB_SETTINGS["db"],
         }
-        self.conn = pymysql.connect(
-            host=settings["host"], port=settings["port"],
-            user=settings["user"], password=settings["password"],
-            db=settings["db"], charset="utf8mb4",
-            autocommit=True,
-            cursorclass=pymysql.cursors.DictCursor
-        )
+        try:
+            self.conn = pymysql.connect(
+                host=settings["host"], port=settings["port"],
+                user=settings["user"], password=settings["password"],
+                db=settings["db"], charset="utf8mb4",
+                autocommit=True,
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            print("database connected")
+        
+        except pymysql.MySQLError as e:
+            print(f"Database connection failed: {e}")
+            self.conn = None
 
     def execute(self, sql, params=None):
         """
         Execute INSERT/UPDATE/DELETE statements.
         Returns the lastrowid to make it easy to capture generated keys.
         """
+        if self.conn is None:
+            print("No database connection.")
+            return None
+        
         with self.conn.cursor() as cur:
             cur.execute(sql, params or ())
             return cur.lastrowid
@@ -70,4 +80,5 @@ class DBClient:
             return cur.fetchall()
 
     def close(self):
-        self.conn.close()
+        if self.conn:
+            self.conn.close()
