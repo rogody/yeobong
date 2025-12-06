@@ -3,13 +3,12 @@ import json
 import threading
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
+from chatbot.app import paths
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import QUrl, QTimer
 
-
-CURRENT_DIRECTORY = os.path.split(__file__)[0]
-PROJECT_PATH = os.path.dirname(os.path.dirname(CURRENT_DIRECTORY))
+PROJECT_PATH = paths.BASE_DIR
 VIEWER_FOLDER_NAME = "web_viewer"
 
 SERVER_PORT = 8000
@@ -18,8 +17,8 @@ DEFAULT_CAMERA_POS = (0.0, 1.6, 3.0)
 DEFAULT_CAMERA_TARGET = (0.0, 1.2, 0.0)
 
 # 기본 리소스 경로 (사용하지 않는 기본값, auto_load=False에서 무시됨)
-DEFAULT_BG_PLY = os.path.join(PROJECT_PATH, "Resources", "projply", "youngsin.ply")
-DEFAULT_ACTOR_PLY = os.path.join(PROJECT_PATH, "Resources", "projply", "jsw.ply")
+DEFAULT_BG_PLY = paths.PLY_DIR / "youngsin.ply"
+DEFAULT_ACTOR_PLY = paths.PLY_DIR / "jsw.ply"
 
 
 def simple_http(*args):
@@ -74,7 +73,7 @@ class WebViewer(QWidget):
 
     def _ensure_server(self):
         if not os.path.exists(self._viewer_index_path):
-            QMessageBox.critical(self, "오류", f"뷰어 파일을 찾을 수 없습니다!\n\n[경로]\n{self._viewer_index_path}\n\n'web_viewer' 폴더가 프로젝트 루트에 있는지 확인해주세요.")
+            QMessageBox.critical(self, "error", f"cannot find the viewer file!\n\n[path]\n{self._viewer_index_path}\n\n'web_viewer'")
             return
         if self._file_server_started:
             return
@@ -83,7 +82,7 @@ class WebViewer(QWidget):
             self.server.start()
             self._file_server_started = True
         except OSError:
-            print(f"⚠️ 포트 {SERVER_PORT}가 사용 중입니다. 기존 서버를 사용합니다.")
+            print(f"port {SERVER_PORT} is already in use. Using the existing server.")
             self._file_server_started = True
 
     def _init_browser(self):
@@ -91,7 +90,7 @@ class WebViewer(QWidget):
             self.browser = QWebEngineView()
             self.layout.addWidget(self.browser)
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"WebView 생성 실패:\n{e}")
+            QMessageBox.critical(self, "Error", f"WebView creation failed:\n{e}")
 
     def _to_url(self, path: str) -> str:
         rel_path = os.path.relpath(path, PROJECT_PATH).replace("\\", "/")
@@ -113,12 +112,12 @@ class WebViewer(QWidget):
         self._capture_camera()
         valid_paths = [p for p in ply_paths if p and os.path.exists(p)]
         if not valid_paths:
-            QMessageBox.critical(self, "오류", "로드할 PLY 파일을 찾을 수 없습니다.\n경로를 확인해주세요.")
+            QMessageBox.critical(self, "Error", "Cannot find PLY files to load.\nPlease check the paths.")
             return
         self._scene_ready = False
         self._loaded_names = {os.path.basename(p).lower() for p in valid_paths}
         final_url = self._build_url(valid_paths)
-        print(f" 로드 URL: {final_url}")
+        print(f" Load URL: {final_url}")
         if self.browser:
             if self._load_conn:
                 try:

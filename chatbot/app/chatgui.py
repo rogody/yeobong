@@ -6,6 +6,7 @@ from .live2dwidget import Live2DWidget
 from .chat_thread import ChatWorker
 from chatbot.core.types import ChatResult
 from .ply_render import WebViewer
+from chatbot.app import paths
 
 import live2d.v3 as live2d
 
@@ -20,19 +21,24 @@ from PySide6.QtWidgets import (
     QLineEdit,
 )
 
+
+
+
 # Paths
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RESOURCES_DIR = PROJECT_ROOT / "Resources"
-PROJPLY_DIR = RESOURCES_DIR / "projply"
+PROJECT_ROOT = paths.BASE_DIR
+RESOURCES_DIR = paths.RESOURCES_DIR
+PROJPLY_DIR = paths.PLY_DIR
 BG_PLY = PROJPLY_DIR / "youngsin.ply"  # fixed background
-ACTOR_PLY = PROJPLY_DIR / "jsw.ply"    # neutral actor
+ACTOR_PLY = PROJPLY_DIR / "jsw.ply"    # neutral
+
+
 
 
 class MainWindow(QMainWindow):
     def __init__(self, service: ChatService):
         super().__init__()
-        live2d.init()
         self.live2d_widget = Live2DWidget()
+        live2d.init()
         self.set_ui()
         # auto_load=False: we will specify PLYs manually
         self.gs_widget = WebViewer(auto_load=False)
@@ -110,6 +116,7 @@ class MainWindow(QMainWindow):
         self.llm_thread = ChatWorker(self.chat_service, text)
         self.enter_button.setEnabled(False)
         self.line_edit.setEnabled(False)
+        self.line_edit.setPlaceholderText("ai is thinking...")
         self.llm_thread.llm_replied.connect(self.llm_content)
         self.llm_thread.start()
 
@@ -118,6 +125,7 @@ class MainWindow(QMainWindow):
         self.result_display.append(self.model_name + ": " + llm_response.reply)
         self.enter_button.setEnabled(True)
         self.line_edit.setEnabled(True)
+        self.line_edit.setPlaceholderText("Enter your text")
         self.live2d_widget.set_motion(llm_response.emotion)
         if self.mode == "3d":
             emotion = self._normalize_emotion(llm_response.emotion)
@@ -154,15 +162,12 @@ class MainWindow(QMainWindow):
 
     def show_epsilon(self):
         self.mode = "2d"
-        live2d.dispose()
-        live2d.init()
         self.show_live2d("epsilon")
 
     def delete_model(self):
         self.mode = "2d"
-        live2d.dispose()
-        self.live2d_widget.close()
-        self.gs_widget.close()
+        self.live2d_widget.hide()
+        self.gs_widget.hide()
 
     def closeEvent(self, event):
         """
@@ -174,7 +179,7 @@ class MainWindow(QMainWindow):
             pass
         super().closeEvent(event)
 
-    def show_live2d(self, name: str):
+    def show_live2d(self, name: str): #여러 모델 추가 기능을 확장을 고려
         self.live2d_widget.set_model(name)
         self.live2d_widget.show()
 

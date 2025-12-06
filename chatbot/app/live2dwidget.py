@@ -1,15 +1,14 @@
-import os
+
 from PySide6.QtCore import QTimerEvent, Qt
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 import OpenGL.GL as gl
 from PySide6.QtGui import QGuiApplication ,QMouseEvent, QCursor
 
 import live2d.v3 as live2d
+from chatbot.app import paths
+from pathlib import Path
 
-
-CURRENT_DIRECTORY = os.path.split(__file__)[0]
-PARENT_DIRECTORY = os.path.dirname(os.path.dirname(CURRENT_DIRECTORY))
-EPSILON_MODEL_DIRECTORY = os.path.join(PARENT_DIRECTORY, "Resources/Epsilon/runtime/Epsilon.model3.json")
+EPSILON_MODEL_DIRECTORY = paths.RESOURCES_DIR / "Epsilon" / "runtime" / "Epsilon.model3.json"
 
 def callback():
     print("motion end")
@@ -18,7 +17,6 @@ def callback():
 class Live2DWidget(QOpenGLWidget):
 
     def __init__(self) -> None:
-        live2d.init()
         super().__init__()
         self.isInLA = False
         self.clickInLA = False
@@ -34,16 +32,26 @@ class Live2DWidget(QOpenGLWidget):
     
     def set_model(self, name:str):
         if(name == "epsilon"):
+            print("Set Epsilon Model")
             self.model_path = EPSILON_MODEL_DIRECTORY
 
     def initializeGL(self) -> None:
-        live2d.glewInit()
-
+        print("[Live2D] initializeGL")
+        live2d.glInit()
+    
+        # 경로 검증
+        if not hasattr(self, "model_path") or self.model_path is None:
+            print("[Live2D] model_path 가 설정되지 않았습니다.")
+            return
+    
+        if not Path(self.model_path).exists():
+            print("[Live2D] 모델 파일을 찾을 수 없습니다:", self.model_path)
+            return
+    
         self.model = live2d.LAppModel()
-
-        self.model.LoadModelJson(self.model_path)
-        
-        #fps 120
+        self.model.LoadModelJson(str(self.model_path))
+    
+        # fps 120
         self.startTimer(int(1000 / 120))
 
     def resizeGL(self, w: int, h: int) -> None:
@@ -53,6 +61,9 @@ class Live2DWidget(QOpenGLWidget):
 
     def paintGL(self) -> None:
         live2d.clearBuffer()
+        if self.model is None:
+            print("[Live2D] paintGL called but model is None")
+            return
 
         self.model.Update()
 
