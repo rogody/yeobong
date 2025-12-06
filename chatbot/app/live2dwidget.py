@@ -36,16 +36,16 @@ class Live2DWidget(QOpenGLWidget):
             self.model_path = EPSILON_MODEL_DIRECTORY
 
     def initializeGL(self) -> None:
-        print("[Live2D] initializeGL")
+        print("Live2D initializeGL")
         live2d.glInit()
     
         # 경로 검증
         if not hasattr(self, "model_path") or self.model_path is None:
-            print("[Live2D] model_path 가 설정되지 않았습니다.")
+            print("Live2D model_path 가 설정되지 않았습니다.")
             return
     
         if not Path(self.model_path).exists():
-            print("[Live2D] 모델 파일을 찾을 수 없습니다:", self.model_path)
+            print("Live2D 모델 파일을 찾을 수 없습니다:", self.model_path)
             return
     
         self.model = live2d.LAppModel()
@@ -62,7 +62,7 @@ class Live2DWidget(QOpenGLWidget):
     def paintGL(self) -> None:
         live2d.clearBuffer()
         if self.model is None:
-            print("[Live2D] paintGL called but model is None")
+            print("Live2D paintGL called but model is None")
             return
 
         self.model.Update()
