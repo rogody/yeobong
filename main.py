@@ -91,10 +91,11 @@ def main():
     window = MainWindow(chat_service)
     try:
         window.show()
-        app.exec()
+        exit_code = app.exec()
     finally:
         live2d.dispose()
         rag.close()
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

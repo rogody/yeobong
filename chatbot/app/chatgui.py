@@ -161,11 +161,9 @@ class MainWindow(QMainWindow):
         self.gs_widget.show()
 
     def show_epsilon(self):
-        self.mode = "2d"
         self.show_live2d("epsilon")
 
     def delete_model(self):
-        self.mode = "2d"
         self.live2d_widget.hide()
         self.gs_widget.hide()
 
