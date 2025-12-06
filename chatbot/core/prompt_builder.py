@@ -1,6 +1,5 @@
 ﻿"""
-프롬프트 생성
-향후 PAD/RAG/감정 등 여러 정보를 조합해 확장할 수 있도록 설계.
+PAD/RAG/감정 등 여러 정보를 조합해 프롬프트 생성, 확장할 수 있도록 설계.
 """
 
 from __future__ import annotations
@@ -9,7 +8,7 @@ from typing import Optional
 
 
 class PromptBuilder:
-    def __init__(self, system_prompt: str = "You are a user's girlfriend"):
+    def __init__(self, system_prompt: str = "You are a user's chatbot assistant."):
         self.system_prompt = system_prompt.strip()
 
     def build(
@@ -20,7 +19,7 @@ class PromptBuilder:
         long_emotion_summary: Optional[str] = None,
         
         ) -> str:
-        """시스템 프롬프트 + RAG 문맥 + 발화의 감정 정보 + 사용자 입력을 하나로 합칩니다."""
+        """시스템 프롬프트 + RAG 문맥 + 발화의 감정 정보 + 사용자 입력 합치기"""
         segments = []
         if self.system_prompt:
             segments.append(f"System:\n{self.system_prompt}")

@@ -1,13 +1,5 @@
 '''
-사용하는 자료형들을 정의
-example
-class Pad
-    pleasure: float
-    arousal: float
-    dominance: float
-    
-class Persona, class Episodicmemory 등등
-    
+Data types used in the chatbot application.
 '''
 from dataclasses import dataclass
 @dataclass

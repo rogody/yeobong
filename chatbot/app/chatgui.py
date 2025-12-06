@@ -1,4 +1,4 @@
-import sys
+
 from pathlib import Path
 
 from chatbot.core.chat_service import ChatService
@@ -11,7 +11,6 @@ import live2d.v3 as live2d
 
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QWidget,
     QHBoxLayout,
@@ -154,14 +153,12 @@ class MainWindow(QMainWindow):
         self.gs_widget.show()
 
     def show_epsilon(self):
-        self.model_name = "EPSILON"
         self.mode = "2d"
         live2d.dispose()
         live2d.init()
         self.show_live2d("epsilon")
 
     def delete_model(self):
-        self.model_name = "Ai Bot"
         self.mode = "2d"
         live2d.dispose()
         self.live2d_widget.close()
@@ -226,13 +223,3 @@ class MainWindow(QMainWindow):
             return "sad"
         return "neutral"
 
-
-'''
-if __name__ == "__main__":
-    live2d.init()
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    app.exec()
-    live2d.dispose()
-'''

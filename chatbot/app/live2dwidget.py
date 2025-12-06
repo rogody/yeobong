@@ -1,15 +1,7 @@
 import os
-import sys
-from PIL import Image
-import numpy as np
 from PySide6.QtCore import QTimerEvent, Qt
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 import OpenGL.GL as gl
-from PySide6.QtWidgets import (QApplication, 
-                               QWidget, QMainWindow, 
-                               QPushButton, QTextEdit, QLineEdit,
-                               QVBoxLayout, QHBoxLayout
-                               )
 from PySide6.QtGui import QGuiApplication ,QMouseEvent, QCursor
 
 import live2d.v3 as live2d
@@ -43,10 +35,6 @@ class Live2DWidget(QOpenGLWidget):
     def set_model(self, name:str):
         if(name == "epsilon"):
             self.model_path = EPSILON_MODEL_DIRECTORY
-        #elif(name == "huohuo"):
-            #self.model_path = HUOHUO_MODEL_DIRECTORY
-        #elif(name=="frieren"):
-            #self.model_path = FRIEREN_MODEL_DIRECTORY
 
     def initializeGL(self) -> None:
         live2d.glewInit()
@@ -69,46 +57,6 @@ class Live2DWidget(QOpenGLWidget):
         self.model.Update()
 
         self.model.Draw()
-        '''
-        if not self.read:
-            self.savePng('screenshot.png')
-
-            self.read = True
-            '''
-    '''
-    def savePng(self, fName):
-        data = gl.glReadPixels(0, 0, self.width(), self.height(), gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)
-        data = np.frombuffer(data, dtype=np.uint8).reshape(self.height(), self.width(), 4)
-        data = np.flipud(data)
-        new_data = np.zeros_like(data)
-        for rid, row in enumerate(data):
-            for cid, col in enumerate(row):
-                color = None
-                new_data[rid][cid] = col
-                if cid > 0 and data[rid][cid - 1][3] == 0 and col[3] != 0:
-                    color = new_data[rid][cid - 1]
-                elif cid > 0 and data[rid][cid - 1][3] != 0 and col[3] == 0:
-                    color = new_data[rid][cid]
-                if color is not None:
-                    color[0] = 255
-                    color[1] = 0
-                    color[2] = 0
-                    color[3] = 255
-                color = None
-                if rid > 0:
-                    if data[rid - 1][cid][3] == 0 and col[3] != 0:
-                        color = new_data[rid - 1][cid]
-                    elif data[rid - 1][cid][3] != 0 and col[3] == 0:
-                        color = new_data[rid][cid]
-                elif col[3] != 0:
-                    color = new_data[rid][cid]
-                if color is not None:
-                    color[0] = 255
-                    color[1] = 0
-                    color[2] = 0
-                    color[3] = 255
-        img = Image.fromarray(new_data, 'RGBA')
-        img.save(fName)'''
             
     def timerEvent(self, a0: QTimerEvent | None) -> None:
         if not self.isVisible():
@@ -139,21 +87,13 @@ class Live2DWidget(QOpenGLWidget):
         if self.isInL2DArea(x, y):
             self.clickInLA = True
             self.clickX, self.clickY = x, y
-            print("pressed")
-            #self.rotate = self.rotate+90
-            #self.model.Rotate(self.rotate)
-            #if(self.model.IsMotionFinished() == True):
-                #self.model.StartRandomMotion()
-                #self.model.SetRandomExpression()
+
 
     def mouseReleaseEvent(self, event):
         x, y = event.scenePosition().x(), event.scenePosition().y()
-        # if self.isInL2DArea(x, y):
         if self.isInLA:
-            # self.model.Touch(x, y)
             pass
             self.clickInLA = False
-            print("released")
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         x, y = event.scenePosition().x(), event.scenePosition().y()

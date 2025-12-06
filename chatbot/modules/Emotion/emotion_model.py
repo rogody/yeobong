@@ -8,9 +8,20 @@ DEFAULT_EMOTION_MODEL = "j-hartmann/emotion-english-distilroberta-base"
 class EmotionAnalyzer:
     def __init__(self, model_name: str = DEFAULT_EMOTION_MODEL):
         # Hugging Face 모델 로딩 (한 번만)
+        
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            model_name, 
+            local_files_only=True
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name, 
+            local_files_only=True
+        )
+        
         self.pipe = pipeline(
             task="text-classification",
-            model=model_name,
+            model=self.model,
+            tokenizer=self.tokenizer,
             top_k=None,  # 전체 감정 점수 보고 싶으면 None
         )
 

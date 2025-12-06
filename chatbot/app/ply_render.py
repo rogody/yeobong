@@ -1,11 +1,9 @@
-import sys
 import os
 import json
 import threading
-import functools
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QMessageBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QMessageBox
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import QUrl, QTimer
 
@@ -24,6 +22,9 @@ DEFAULT_BG_PLY = os.path.join(PROJECT_PATH, "Resources", "projply", "youngsin.pl
 DEFAULT_ACTOR_PLY = os.path.join(PROJECT_PATH, "Resources", "projply", "jsw.ply")
 
 
+def simple_http(*args):
+    return SimpleHTTPRequestHandler(*args, directory=PROJECT_PATH)
+
 class FileServer(threading.Thread):
     """
     로컬 루트(MyProject) 전체를 서빙하는 HTTP 서버
@@ -31,8 +32,7 @@ class FileServer(threading.Thread):
     def __init__(self):
         super().__init__()
         self.daemon = True
-        handler = functools.partial(SimpleHTTPRequestHandler, directory=PROJECT_PATH)
-        self.httpd = HTTPServer(('127.0.0.1', SERVER_PORT), handler)
+        self.httpd = HTTPServer(('127.0.0.1', SERVER_PORT), simple_http)
         self.httpd.allow_reuse_address = True
 
     def run(self):
@@ -118,7 +118,7 @@ class WebViewer(QWidget):
         self._scene_ready = False
         self._loaded_names = {os.path.basename(p).lower() for p in valid_paths}
         final_url = self._build_url(valid_paths)
-        print(f"📦 로드 URL: {final_url}")
+        print(f" 로드 URL: {final_url}")
         if self.browser:
             if self._load_conn:
                 try:
