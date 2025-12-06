@@ -171,6 +171,7 @@ class MainWindow(QMainWindow):
         """
         창 닫을 때 대화 로그(DB) 정리.
         """
+        print("closing chat service and db connections")
         try:
             self.chat_service.close_session()
         except Exception:

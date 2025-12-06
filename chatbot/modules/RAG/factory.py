@@ -6,7 +6,11 @@ from .db_client import DBClient
 from .embedding_client import EmbeddingClient
 from .memory_store import MemoryStore
 from .memory_retriever import MemoryRetriever
+from chatbot.app import paths
 
+
+EMBEDDING_PATH = paths.BASE_DIR / "model" / "embedding"
+embedding_model_path = str(EMBEDDING_PATH)
 
 def _int_env(name: str, default: int) -> int:
     try:
@@ -58,7 +62,10 @@ def init_rag_components() -> RAGComponents:
     memory_retriever: Optional[MemoryRetriever] = None
     try:
         db_client = DBClient()
-        embedding_client = EmbeddingClient()
+        if embedding_model_path:
+            embedding_client = EmbeddingClient(model_name=embedding_model_path)
+        else:
+            embedding_client = EmbeddingClient()
         memory_store = MemoryStore(
             db_client,
             embedding_client,
