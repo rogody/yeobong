@@ -40,6 +40,7 @@ class MainWindow(QMainWindow):
         self.chat_service = service
         self.model_name = "Ai Bot"
         self.mode = "2d"  # 2d | 3d
+        self._overlay_demo_shown = False
         # Emotion -> PLY path
         self.emotion_map = {
             "happy": PROJPLY_DIR / "happy.ply",
@@ -124,9 +125,32 @@ class MainWindow(QMainWindow):
             self._update_3d_scene(emotion)
 
     def show_gs(self):
-        # Always load background + neutral(jsw) to start (reload approach for reliability)
         self.mode = "3d"
-        self.gs_widget.load_scene([str(BG_PLY), str(ACTOR_PLY)])
+        if not self._gs_loaded:
+            preload_paths = {BG_PLY, ACTOR_PLY}
+            preload_paths.update(self.emotion_map.values())
+            existing = [str(p) for p in preload_paths if p.exists()]
+            self.gs_widget.preload_scene(
+                existing,
+                initial_visible=[BG_PLY.name, ACTOR_PLY.name],
+                always_visible=[BG_PLY.name],
+                fallback_name=ACTOR_PLY.name,
+            )
+            self._gs_loaded = True
+        else:
+            self.gs_widget.set_visibility(
+                [BG_PLY.name, ACTOR_PLY.name],
+                always_visible=[BG_PLY.name],
+                fallback_name=ACTOR_PLY.name,
+            )
+        # 최초 진입만 오버레이 유지, 이후에는 끈 상태로 시작
+        if self._overlay_demo_shown:
+            self.gs_widget.set_overlay(False)
+        else:
+            self._overlay_demo_shown = True
+        # 배경/그리드 조정
+        self.gs_widget.set_grid(False)
+        self.gs_widget.set_background(0.97, 0.97, 0.97, 1.0)
         self.gs_widget.show()
 
     def show_epsilon(self):
@@ -159,13 +183,23 @@ class MainWindow(QMainWindow):
 
     def _update_3d_scene(self, emotion_label: str):
         """
-        배경 + 선택된 감정 PLY만 로드 (visibility 토글 대신 재로딩으로 확실히 처리).
+        배경은 유지하고 감정 PLY만 토글한다.
         """
         emo_path = self.emotion_map.get(emotion_label.lower()) or self.emotion_map.get("neutral")
-        paths = [str(BG_PLY)]
+        target_files = [BG_PLY.name]
+        fallback = None
         if emo_path and emo_path.exists():
-            paths.append(str(emo_path))
-        self.gs_widget.load_scene(paths)
+            target_files.append(emo_path.name)
+        else:
+            target_files.append(ACTOR_PLY.name)
+            fallback = ACTOR_PLY.name
+        self.gs_widget.set_visibility(
+            target_files,
+            always_visible=[BG_PLY.name],
+            fallback_name=fallback,
+        )
+        # 감정 전환 이후에는 Gaussian overlay 끄기
+        self.gs_widget.set_overlay(False)
 
     def _normalize_emotion(self, label: str | None) -> str:
         """
