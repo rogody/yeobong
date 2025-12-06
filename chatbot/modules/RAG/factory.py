@@ -7,10 +7,11 @@ from .embedding_client import EmbeddingClient
 from .memory_store import MemoryStore
 from .memory_retriever import MemoryRetriever
 from chatbot.app import paths
+from sentence_transformers import SentenceTransformer
 
 
-EMBEDDING_PATH = paths.BASE_DIR / "model" / "embedding"
-embedding_model_path = str(EMBEDDING_PATH)
+embedding_model_path = str(paths.EMBEDDING_DIR)
+DEFAULT_MODEL_ID = "BAAI/bge-large-en-v1.5"
 
 def _int_env(name: str, default: int) -> int:
     try:
@@ -62,10 +63,14 @@ def init_rag_components() -> RAGComponents:
     memory_retriever: Optional[MemoryRetriever] = None
     try:
         db_client = DBClient()
-        if embedding_model_path:
+        if os.path.exists(embedding_model_path):
             embedding_client = EmbeddingClient(model_name=embedding_model_path)
         else:
-            embedding_client = EmbeddingClient()
+            print("no embedding model found locally. download is needed.")
+            model = SentenceTransformer(DEFAULT_MODEL_ID)
+            model.save(embedding_model_path)
+            embedding_client = EmbeddingClient(model_name=embedding_model_path)
+            
         memory_store = MemoryStore(
             db_client,
             embedding_client,

@@ -4,17 +4,35 @@ import torch
 class LLModel:
     def __init__(self, model_path):
         self.model_path = model_path
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_path,
-            low_cpu_mem_usage=True,
-            torch_dtype="bfloat16",
-            device_map="auto",
-            cache_dir="./model",
-            local_files_only=True
-        )
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_path, trust_remote_code=True, cache_dir="./model", local_files_only=True
-        )
+    
+        try:
+            print("loading llm model locally")
+            self.model = AutoModelForCausalLM.from_pretrained(
+                self.model_path,
+                low_cpu_mem_usage=True,
+                torch_dtype="bfloat16",
+                device_map="auto",
+                cache_dir="./model",
+                local_files_only=True
+            )
+        except OSError:
+            print("no llm model found locally. download is needed.")
+            self.model = AutoModelForCausalLM.from_pretrained(
+                self.model_path,
+                low_cpu_mem_usage=True,
+                torch_dtype="bfloat16",
+                device_map="auto",
+                cache_dir="./model",
+                local_files_only=False
+            )
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_path, trust_remote_code=True, cache_dir="./model", local_files_only=True
+            )
+        except OSError:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_path, trust_remote_code=True, cache_dir="./model", local_files_only=False
+            )
 
     def generate(self, prompt, max_new_tokens: int = 16384):
         messages = [{"role": "user", "content": prompt}]

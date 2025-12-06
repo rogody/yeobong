@@ -9,14 +9,28 @@ class EmotionAnalyzer:
     def __init__(self, model_name: str = DEFAULT_EMOTION_MODEL):
         # Hugging Face 모델 로딩 (한 번만)
         
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            model_name, 
-            local_files_only=True
-        )
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            model_name, 
-            local_files_only=True
-        )
+        try:
+            print("loading emotion model locally")
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                model_name, 
+                local_files_only=True 
+            )
+        except OSError:
+            print("no emotion model found locally. download is needed.")
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                model_name, 
+                local_files_only=False
+            )
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                model_name, 
+                local_files_only=True
+            )
+        except OSError:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                model_name, 
+                local_files_only=False
+            )
         
         self.pipe = pipeline(
             task="text-classification",
